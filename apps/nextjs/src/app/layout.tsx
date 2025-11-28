@@ -17,10 +17,12 @@ export const metadata: Metadata = {
       : "http://localhost:3000",
   ),
   title: "FinSight",
-  description: "FinSight is a financial management tool that helps you track your spending, visualize your investments, and plan for retirement.",
+  description:
+    "FinSight is a financial management tool that helps you track your spending, visualize your investments, and plan for retirement.",
   openGraph: {
     title: "FinSight",
-    description: "FinSight is a financial management tool that helps you track your spending, visualize your investments, and plan for retirement.",
+    description:
+      "FinSight is a financial management tool that helps you track your spending, visualize your investments, and plan for retirement.",
     url: "https://finsight.io.vercel.app",
     siteName: "FinSight",
   },

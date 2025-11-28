@@ -1,54 +1,48 @@
 import { headers } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+
 import { Button } from "@finsight/ui/button";
 
 import { auth, getSession } from "~/auth/server";
 
-export async function AuthShowcase() {
+export async function AuthButtons() {
   const session = await getSession();
 
-  if (!session) {
+  if (session) {
     return (
-      <form>
-        <Button
-          variant="default"
-          formAction={async () => {
-            "use server";
-            const res = await auth.api.signInSocial({
-              body: {
-                provider: "google",
-                callbackURL: "/",
-              },
-            });
-            if (!res.url) {
-              throw new Error("No URL returned from signInSocial");
-            }
-            redirect(res.url);
-          }}
-        >
-          Sign In
-        </Button>
-      </form>
+      <div className="flex items-center gap-4">
+        <span className="text-sm text-zinc-400">Hi, {session.user.name}</span>
+        <form>
+          <Button
+            variant="secondary"
+            formAction={async () => {
+              "use server";
+              await auth.api.signOut({
+                headers: await headers(),
+              });
+              redirect("/");
+            }}
+          >
+            Sign Out
+          </Button>
+        </form>
+        <Link href="/dashboard">
+          <Button variant="default">Dashboard</Button>
+        </Link>
+      </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-4">
-      <span className="text-sm text-zinc-400">Hi, {session.user.name}</span>
-      <form>
-        <Button
-          variant="secondary"
-          formAction={async () => {
-            "use server";
-            await auth.api.signOut({
-              headers: await headers(),
-            });
-            redirect("/");
-          }}
-        >
-          Sign Out
-        </Button>
-      </form>
+    <div className="flex gap-4">
+      <Link href="/auth">
+        <Button variant="ghost">Sign In</Button>
+      </Link>
     </div>
   );
+}
+
+export async function AuthShowcase() {
+  return <AuthButtons />;
 }

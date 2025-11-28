@@ -17,7 +17,7 @@ const baseUrl =
 
 export const auth = initAuth({
   baseUrl,
-  productionUrl: `https://${env.VERCEL_PROJECT_PRODUCTION_URL ?? "turbo.t3.gg"}`,
+  productionUrl: `https://${env.VERCEL_PROJECT_PRODUCTION_URL ?? "finsight-io.vercel.app"}`,
   secret: env.AUTH_SECRET,
   googleClientId: env.AUTH_GOOGLE_ID,
   googleClientSecret: env.AUTH_GOOGLE_SECRET,

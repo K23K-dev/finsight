@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import Link from "next/link";
+
 import { Button } from "@finsight/ui/button";
 
 import { AuthShowcase } from "./_components/auth-showcase";
@@ -11,7 +11,9 @@ export default function HomePage() {
       <nav className="container flex w-full items-center justify-between py-6">
         <div className="text-2xl font-bold tracking-tighter">FinSight</div>
         <div className="flex items-center gap-4">
-          <AuthShowcase />
+          <Suspense>
+            <AuthShowcase />
+          </Suspense>
         </div>
       </nav>
 
