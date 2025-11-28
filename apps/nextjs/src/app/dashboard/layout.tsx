@@ -1,19 +1,18 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   ArrowRightLeft,
   Banknote,
   Bot,
   LayoutDashboard,
-  Settings,
   TrendingUp,
+  Calculator,
   Wallet,
 } from "lucide-react";
 
-import { Button } from "@finsight/ui/button";
 import { Separator } from "@finsight/ui/separator";
 
 import { getSession } from "~/auth/server";
+import { DashboardLink } from "../_components/dashboard-link";
 
 export default async function DashboardLayout({
   children,
@@ -57,14 +56,14 @@ export default async function DashboardLayout({
             icon={<TrendingUp className="h-4 w-4" />}
           />
           <DashboardLink
+            href="/dashboard/retirement"
+            label="Retirement Planning"
+            icon={<Calculator className="h-4 w-4" />}
+          />
+          <DashboardLink
             href="/dashboard/ai"
             label="AI Advisor"
             icon={<Bot className="h-4 w-4" />}
-          />
-          <DashboardLink
-            href="/dashboard/settings"
-            label="Settings"
-            icon={<Settings className="h-4 w-4" />}
           />
         </nav>
       </aside>
@@ -74,27 +73,5 @@ export default async function DashboardLayout({
         <div className="mx-auto max-w-6xl">{children}</div>
       </main>
     </div>
-  );
-}
-
-function DashboardLink({
-  href,
-  label,
-  icon,
-}: {
-  href: string;
-  label: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <Link href={href}>
-      <Button
-        variant="ghost"
-        className="text-muted-foreground hover:bg-accent hover:text-accent-foreground w-full justify-start gap-3"
-      >
-        {icon}
-        {label}
-      </Button>
-    </Link>
   );
 }

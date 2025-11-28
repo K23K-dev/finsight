@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import { ArrowRight, BarChart3, Bot, PieChart, Wallet } from "lucide-react";
 
 import { Button } from "@finsight/ui/button";
-
 import { AuthShowcase } from "./_components/auth-showcase";
+import { FeatureCard } from "./_components/feature-card";
 
 export default function HomePage() {
   return (
@@ -73,27 +73,5 @@ export default function HomePage() {
         </div>
       </section>
     </main>
-  );
-}
-
-function FeatureCard({
-  title,
-  description,
-  icon,
-}: {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <div className="group bg-card flex flex-col gap-4 rounded-2xl border p-8 transition-all hover:shadow-lg">
-      <div className="bg-background text-primary group-hover:bg-primary group-hover:text-primary-foreground flex h-12 w-12 items-center justify-center rounded-lg border transition-colors">
-        {icon}
-      </div>
-      <div className="space-y-2">
-        <h3 className="text-xl font-semibold">{title}</h3>
-        <p className="text-muted-foreground leading-relaxed">{description}</p>
-      </div>
-    </div>
   );
 }
