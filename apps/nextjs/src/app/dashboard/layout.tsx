@@ -1,5 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  ArrowRightLeft,
+  Banknote,
+  Bot,
+  LayoutDashboard,
+  Settings,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
 
 import { Button } from "@finsight/ui/button";
 import { Separator } from "@finsight/ui/separator";
@@ -18,35 +27,44 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-black text-zinc-100 md:flex-row">
+    <div className="bg-background text-foreground flex min-h-screen flex-col md:flex-row">
       {/* Sidebar */}
-      <aside className="w-full border-b border-zinc-800 bg-zinc-950/50 md:w-64 md:border-r md:border-b-0">
-        <div className="flex h-14 items-center px-4 text-xl font-bold tracking-tighter">
+      <aside className="bg-card w-full border-b md:w-64 md:border-r md:border-b-0">
+        <div className="flex h-14 items-center gap-2 px-4 text-xl font-bold tracking-tighter">
+          <Wallet className="text-primary h-6 w-6" />
           FinSight
         </div>
-        <Separator className="opacity-50" />
+        <Separator />
         <nav className="flex flex-col gap-1 p-4">
-          <DashboardLink href="/dashboard" label="Overview" icon="🏠" />
+          <DashboardLink
+            href="/dashboard"
+            label="Overview"
+            icon={<LayoutDashboard className="h-4 w-4" />}
+          />
           <DashboardLink
             href="/dashboard/transactions"
             label="Transactions"
-            icon="💳"
+            icon={<ArrowRightLeft className="h-4 w-4" />}
           />
           <DashboardLink
             href="/dashboard/cash-flow"
             label="Cash Flow"
-            icon="🌊"
+            icon={<Banknote className="h-4 w-4" />}
           />
           <DashboardLink
             href="/dashboard/investments"
             label="Investments"
-            icon="📈"
+            icon={<TrendingUp className="h-4 w-4" />}
           />
-          <DashboardLink href="/dashboard/ai" label="AI Advisor" icon="🤖" />
+          <DashboardLink
+            href="/dashboard/ai"
+            label="AI Advisor"
+            icon={<Bot className="h-4 w-4" />}
+          />
           <DashboardLink
             href="/dashboard/settings"
             label="Settings"
-            icon="⚙️"
+            icon={<Settings className="h-4 w-4" />}
           />
         </nav>
       </aside>
@@ -66,15 +84,15 @@ function DashboardLink({
 }: {
   href: string;
   label: string;
-  icon: string;
+  icon: React.ReactNode;
 }) {
   return (
     <Link href={href}>
       <Button
         variant="ghost"
-        className="w-full justify-start gap-3 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+        className="text-muted-foreground hover:bg-accent hover:text-accent-foreground w-full justify-start gap-3"
       >
-        <span>{icon}</span>
+        {icon}
         {label}
       </Button>
     </Link>

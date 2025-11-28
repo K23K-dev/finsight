@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ArrowRight, BarChart3, Bot, PieChart, Wallet } from "lucide-react";
 
 import { Button } from "@finsight/ui/button";
 
@@ -6,10 +7,15 @@ import { AuthShowcase } from "./_components/auth-showcase";
 
 export default function HomePage() {
   return (
-    <main className="flex min-h-screen flex-col items-center bg-black text-white">
+    <main className="bg-background text-foreground flex min-h-screen flex-col">
       {/* Navbar */}
-      <nav className="container flex w-full items-center justify-between py-6">
-        <div className="text-2xl font-bold tracking-tighter">FinSight</div>
+      <nav className="container mx-auto flex w-full items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-2">
+          <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-lg">
+            <Wallet className="h-5 w-5" />
+          </div>
+          <span className="text-xl font-semibold tracking-tight">FinSight</span>
+        </div>
         <div className="flex items-center gap-4">
           <Suspense>
             <AuthShowcase />
@@ -18,48 +24,51 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="container flex flex-col items-center justify-center gap-6 py-24 text-center md:py-32">
-        <div className="rounded-full bg-zinc-800 px-3 py-1 text-sm text-zinc-400">
-          ✨ Now with AI-powered insights
+      <section className="container mx-auto flex flex-col items-center justify-center gap-8 px-6 py-24 text-center md:py-32">
+        <div className="bg-muted text-muted-foreground inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium">
+          <span>Introducing AI Insights</span>
+          <ArrowRight className="ml-1 h-4 w-4" />
         </div>
-        <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-          Master Your <span className="text-primary">Money</span>
-        </h1>
-        <p className="max-w-2xl leading-normal text-zinc-400 sm:text-xl sm:leading-8">
-          Track spending, visualize investments, and plan for retirement with
-          the world&apos;s most advanced AI financial assistant.
-        </p>
-        <div className="flex gap-4">
-          <Button size="lg" className="h-12 px-8 text-lg">
-            Get Started
+
+        <div className="max-w-4xl space-y-4">
+          <h1 className="text-5xl font-bold tracking-tight sm:text-7xl">
+            Intelligent finance for <br className="hidden sm:block" />
+            <span className="text-primary">smarter decisions</span>
+          </h1>
+          <p className="text-muted-foreground mx-auto max-w-2xl text-lg sm:text-xl">
+            Experience the future of wealth management. Track assets, analyze
+            spending, and forecast your financial freedom with enterprise-grade
+            precision.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <Button size="lg" className="h-12 px-8 text-base">
+            Start Free Trial
           </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="h-12 px-8 text-lg text-black dark:text-white"
-          >
-            View Demo
+          <Button variant="outline" size="lg" className="h-12 px-8 text-base">
+            Live Demo
           </Button>
         </div>
       </section>
 
       {/* Feature Grid */}
-      <section className="container py-24">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="container mx-auto px-6 py-24">
+        <div className="grid gap-8 md:grid-cols-3">
           <FeatureCard
-            title="Expense Tracking"
-            description="Automatically categorize transactions and see exactly where your money goes every month."
-            icon="💸"
+            title="Smart Expense Tracking"
+            description="Automated categorization and spending analysis to help you optimize your cash flow effortlessly."
+            icon={<PieChart className="h-6 w-6" />}
           />
           <FeatureCard
-            title="Investment Portfolio"
-            description="Real-time visualization of your stocks, crypto, and retirement accounts in one unified dashboard."
-            icon="📈"
+            title="Portfolio Analytics"
+            description="Real-time performance tracking across all your investment accounts in a single, unified dashboard."
+            icon={<BarChart3 className="h-6 w-6" />}
           />
           <FeatureCard
             title="AI Financial Advisor"
-            description="Ask questions like 'Can I afford a trip to Japan?' and get instant, data-backed answers."
-            icon="🤖"
+            description="Get personalized financial guidance and answers to complex questions from your dedicated AI assistant."
+            icon={<Bot className="h-6 w-6" />}
           />
         </div>
       </section>
@@ -74,13 +83,17 @@ function FeatureCard({
 }: {
   title: string;
   description: string;
-  icon: string;
+  icon: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 transition-colors hover:bg-zinc-900">
-      <div className="text-4xl">{icon}</div>
-      <h3 className="mt-4 text-xl font-bold">{title}</h3>
-      <p className="text-zinc-400">{description}</p>
+    <div className="group bg-card flex flex-col gap-4 rounded-2xl border p-8 transition-all hover:shadow-lg">
+      <div className="bg-background text-primary group-hover:bg-primary group-hover:text-primary-foreground flex h-12 w-12 items-center justify-center rounded-lg border transition-colors">
+        {icon}
+      </div>
+      <div className="space-y-2">
+        <h3 className="text-xl font-semibold">{title}</h3>
+        <p className="text-muted-foreground leading-relaxed">{description}</p>
+      </div>
     </div>
   );
 }
