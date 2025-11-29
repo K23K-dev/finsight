@@ -92,6 +92,18 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
+                  isActive={pathname === "/dashboard/accounts"}
+                  tooltip="Accounts"
+                >
+                  <Link href="/dashboard/accounts">
+                    <Wallet />
+                    <span>Accounts</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
                   isActive={pathname === "/dashboard/transactions"}
                   tooltip="Transactions"
                 >
