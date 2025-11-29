@@ -136,40 +136,65 @@ export default function SignInPage() {
         <div className="absolute inset-0 bg-zinc-900" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right_bottom,rgba(0,0,0,0.8),rgba(0,0,0,0.4)),url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center" />
 
-        <div className="relative z-10">
-          {/* Optional top content for right side */}
-        </div>
-
-        <div className="relative z-10 space-y-6">
-          <div className="flex gap-1 text-yellow-400">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <svg key={i} className="h-5 w-5 fill-current" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            ))}
-          </div>
-          <blockquote className="space-y-2">
-            <p className="text-lg leading-relaxed font-medium">
-              &ldquo;I tried YNAB, I tried Mint, I use FinSight. Soooo much more
-              intuitive and the UI/UX is delightful.&rdquo;
-            </p>
-            <footer className="text-sm font-medium opacity-80">Josh W.</footer>
-          </blockquote>
-
-          {/* Dashboard Mockup Placeholder */}
-          <div className="mt-8 overflow-hidden rounded-t-xl border border-white/10 bg-white/5 p-2 shadow-2xl backdrop-blur-sm">
-            <div className="aspect-video w-full rounded-lg bg-zinc-950/50 p-4">
-              <div className="flex h-full w-full flex-col gap-4">
-                <div className="flex gap-4">
-                  <div className="h-24 flex-1 rounded-md bg-zinc-800/50" />
-                  <div className="h-24 flex-1 rounded-md bg-zinc-800/50" />
-                  <div className="h-24 flex-1 rounded-md bg-zinc-800/50" />
+        <div className="relative z-10 flex h-full items-center justify-center">
+          <div className="w-full max-w-md rounded-xl border border-white/10 bg-zinc-950/50 p-8 shadow-2xl backdrop-blur-xl">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-zinc-400">
+                  Total Portfolio
                 </div>
-                <div className="flex flex-1 gap-4">
-                  <div className="flex-2 rounded-md bg-zinc-800/50" />
-                  <div className="flex-1 rounded-md bg-zinc-800/50" />
-                </div>
+                <div className="text-3xl font-bold text-white">$124,592.00</div>
               </div>
+              <div className="rounded-full bg-emerald-500/20 px-3 py-1 text-sm font-medium text-emerald-400">
+                +12.5%
+              </div>
+            </div>
+
+            {/* CSS-only Line Chart */}
+            <div className="relative h-48 w-full pt-4">
+              <svg
+                className="h-full w-full overflow-visible"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+              >
+                <defs>
+                  <linearGradient
+                    id="chartGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.5" />
+                    <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M0 100 L0 70 C20 65 40 80 60 50 S80 30 100 10 L100 100 Z"
+                  fill="url(#chartGradient)"
+                />
+                <path
+                  d="M0 70 C20 65 40 80 60 50 S80 30 100 10"
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
+
+              {/* Chart Points */}
+              <div className="absolute top-[10%] right-0 h-3 w-3 translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+            </div>
+
+            <div className="mt-6 flex justify-between text-xs text-zinc-500">
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
+              <span>Sun</span>
             </div>
           </div>
         </div>
