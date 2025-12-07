@@ -4,5 +4,5 @@
       "mode": "auto"
     }
   ],
-  "conventionalCommits.scopes": ["ui", "auth", "dashboard"]
+  "conventionalCommits.scopes": ["ui", "auth", "dashboard", "deps"]
 }
