@@ -4,11 +4,10 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { eq } from "@finsight/db";
-import { SimplefinConnection } from "@finsight/db/schema";
+import { Connection } from "@finsight/db/schema";
 
 import { protectedProcedure } from "../trpc";
 
-// Helper to fetch with Basic auth from a URL containing credentials
 async function fetchWithAuth(accessUrl: string) {
   const parsedUrl = new URL(accessUrl);
   const username = parsedUrl.username;
@@ -26,22 +25,18 @@ async function fetchWithAuth(accessUrl: string) {
 }
 
 export const simplefinRouter = {
-  // 1. Exchange Setup Token for Access URL and store it
   linkAccount: protectedProcedure
     .input(z.object({ setupToken: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      // Decode the Base64 Setup Token to get the Claim URL
       let claimUrl: string;
       try {
         claimUrl = Buffer.from(input.setupToken, "base64").toString("utf-8");
-      } catch (e) {
+      } catch {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Invalid setup token format (must be base64).",
         });
       }
-
-      console.log("Exchanging Claim URL:", claimUrl);
 
       // Call the Claim URL via POST to get the Access URL
       const response = await fetch(claimUrl, {
@@ -58,22 +53,16 @@ export const simplefinRouter = {
         });
       }
 
-      // The response body IS the Access URL
       const accessUrl = await response.text();
-      console.log(
-        "Received Access URL (masked):",
-        accessUrl.replace(/:[^:@]+@/, ":***@"),
-      );
 
-      // Store in Database
       await ctx.db
-        .insert(SimplefinConnection)
+        .insert(Connection)
         .values({
           userId: ctx.session.user.id,
           accessUrl: accessUrl,
         })
         .onConflictDoUpdate({
-          target: SimplefinConnection.userId,
+          target: Connection.userId,
           set: {
             accessUrl: accessUrl,
             updatedAt: new Date(),
@@ -83,11 +72,9 @@ export const simplefinRouter = {
       return { success: true };
     }),
 
-  // New procedure to fetch accounts using the stored connection
   getAccounts: protectedProcedure.query(async ({ ctx }) => {
-    // 1. Retrieve Access URL from DB
-    const connection = await ctx.db.query.SimplefinConnection.findFirst({
-      where: eq(SimplefinConnection.userId, ctx.session.user.id),
+    const connection = await ctx.db.query.Connection.findFirst({
+      where: eq(Connection.userId, ctx.session.user.id),
     });
 
     if (!connection) {
