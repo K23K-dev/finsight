@@ -108,7 +108,13 @@ export const simplefinRouter = {
       });
     }
 
-    const accountsRes = await fetchWithAuth(`${connection.accessUrl}/accounts`);
+    // Include a 60-day window and pending transactions when fetching accounts/transactions
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 60);
+    const startTimestamp = Math.floor(startDate.getTime() / 1000);
+    const requestUrl = `${connection.accessUrl}/accounts?start-date=${startTimestamp}&pending=1`;
+
+    const accountsRes = await fetchWithAuth(requestUrl);
 
     if (!accountsRes.ok) {
       if (accountsRes.status === 403) {
