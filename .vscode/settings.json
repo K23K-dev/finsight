@@ -11,6 +11,7 @@
     "deps",
     "api",
     "db",
-    "accounts"
+    "accounts",
+    "transactions"
   ]
 }
