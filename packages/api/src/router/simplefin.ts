@@ -3,8 +3,8 @@ import type { TRPCRouterRecord } from "@trpc/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { eq } from "@finsight/db";
-import { Connection } from "@finsight/db/schema";
+import { and, eq, notInArray, sql } from "@finsight/db";
+import { Connection, FinancialAccount } from "@finsight/db/schema";
 
 import { protectedProcedure } from "../trpc";
 
@@ -23,6 +23,18 @@ async function fetchWithAuth(accessUrl: string) {
     headers: { Authorization: authHeader },
   });
 }
+
+const SimpleFinAccountSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  balance: z.union([z.string(), z.number()]).transform((v) => v.toString()),
+  currency: z.string(),
+  type: z.string().optional().nullable(),
+});
+
+const SimpleFinResponseSchema = z.object({
+  accounts: z.array(SimpleFinAccountSchema),
+});
 
 export const simplefinRouter = {
   linkAccount: protectedProcedure
@@ -101,6 +113,52 @@ export const simplefinRouter = {
     }
 
     const json = await accountsRes.json();
+
+    const parsed = SimpleFinResponseSchema.safeParse(json);
+
+    if (parsed.success) {
+      await ctx.db.transaction(async (tx) => {
+        await tx.delete(FinancialAccount).where(
+          and(
+            eq(FinancialAccount.userId, ctx.session.user.id),
+            notInArray(
+              FinancialAccount.id,
+              parsed.data.accounts.map((a) => a.id),
+            ),
+          ),
+        );
+
+        for (const account of parsed.data.accounts) {
+          await tx
+            .insert(FinancialAccount)
+            .values({
+              id: account.id,
+              userId: ctx.session.user.id,
+              name: account.name,
+              balance: account.balance,
+              currency: account.currency,
+              type: account.type ?? undefined,
+              lastSyncedAt: new Date(),
+            })
+            .onConflictDoUpdate({
+              target: FinancialAccount.id,
+              set: {
+                balance: sql`excluded.balance`,
+                name: sql`excluded.name`,
+                type: sql`excluded.type`,
+                lastSyncedAt: new Date(),
+                updatedAt: new Date(),
+              },
+            });
+        }
+      });
+    } else {
+      console.error(
+        "Failed to parse SimpleFin accounts for syncing:",
+        parsed.error,
+      );
+    }
+
     return json as Record<string, unknown>;
   }),
 } satisfies TRPCRouterRecord;

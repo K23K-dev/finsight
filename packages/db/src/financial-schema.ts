@@ -29,7 +29,7 @@ export const FinancialAccount = pgTable("financial_account", (t) => ({
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   name: t.text().notNull(),
-  balance: t.numeric({ precision: 19, scale: 4 }).notNull(),
+  balance: t.numeric({ precision: 19, scale: 2 }).notNull(),
   currency: t.text().notNull(),
   type: t.text(), // 'checking', 'credit card', 'investment', etc.
   lastSyncedAt: t.timestamp().defaultNow(),
@@ -49,7 +49,7 @@ export const Transaction = pgTable("transaction", (t) => ({
     .text()
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  amount: t.numeric({ precision: 19, scale: 4 }).notNull(),
+  amount: t.numeric({ precision: 19, scale: 2 }).notNull(),
   description: t.text().notNull(),
   postedDate: t.timestamp().notNull(),
   category: t.text(),
@@ -68,7 +68,7 @@ export const BalanceSnapshot = pgTable(
       .text()
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    balance: t.numeric({ precision: 19, scale: 4 }).notNull(),
+    balance: t.numeric({ precision: 19, scale: 2 }).notNull(),
     date: t.date().notNull(),
     createdAt: t.timestamp().defaultNow().notNull(),
   }),
