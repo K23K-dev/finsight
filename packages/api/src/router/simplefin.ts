@@ -4,7 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { and, eq, notInArray, sql } from "@finsight/db";
-import { Connection, FinancialAccount } from "@finsight/db/schema";
+import { Connection, FinancialAccount, Transaction } from "@finsight/db/schema";
 
 import { protectedProcedure } from "../trpc";
 
@@ -24,12 +24,23 @@ async function fetchWithAuth(accessUrl: string) {
   });
 }
 
+const SimpleFinTransactionSchema = z.object({
+  id: z.string(),
+  posted: z.number(), // Unix seconds
+  amount: z.union([z.string(), z.number()]).transform((v) => v.toString()),
+  description: z.string(),
+  payee: z.string().optional(),
+  memo: z.string().optional(),
+  category: z.string().optional(),
+});
+
 const SimpleFinAccountSchema = z.object({
   id: z.string(),
   name: z.string(),
   balance: z.union([z.string(), z.number()]).transform((v) => v.toString()),
   currency: z.string(),
   type: z.string().optional().nullable(),
+  transactions: z.array(SimpleFinTransactionSchema).optional(),
 });
 
 const SimpleFinResponseSchema = z.object({
@@ -113,7 +124,6 @@ export const simplefinRouter = {
     }
 
     const json = await accountsRes.json();
-
     const parsed = SimpleFinResponseSchema.safeParse(json);
 
     if (parsed.success) {
@@ -150,6 +160,31 @@ export const simplefinRouter = {
                 updatedAt: new Date(),
               },
             });
+
+          if (account.transactions && account.transactions.length > 0) {
+            for (const t of account.transactions) {
+              await tx
+                .insert(Transaction)
+                .values({
+                  id: t.id,
+                  accountId: account.id,
+                  userId: ctx.session.user.id,
+                  amount: t.amount,
+                  description: t.description,
+                  postedDate: new Date(t.posted * 1000),
+                  category: t.category ?? null,
+                })
+                .onConflictDoUpdate({
+                  target: Transaction.id,
+                  set: {
+                    amount: sql`excluded.amount`,
+                    description: sql`excluded.description`,
+                    postedDate: sql`excluded.posted_date`,
+                    category: sql`excluded.category`,
+                  },
+                });
+            }
+          }
         }
       });
     } else {
@@ -160,5 +195,23 @@ export const simplefinRouter = {
     }
 
     return json as Record<string, unknown>;
+  }),
+
+  getAccountsFromDb: protectedProcedure.query(async ({ ctx }) => {
+    const accounts = await ctx.db.query.FinancialAccount.findMany({
+      where: eq(FinancialAccount.userId, ctx.session.user.id),
+      orderBy: (fields, { desc }) => [desc(fields.updatedAt)],
+    });
+
+    return accounts;
+  }),
+
+  getTransactionsFromDb: protectedProcedure.query(async ({ ctx }) => {
+    const transactions = await ctx.db.query.Transaction.findMany({
+      where: eq(Transaction.userId, ctx.session.user.id),
+      orderBy: (fields, { desc }) => [desc(fields.postedDate)],
+    });
+
+    return transactions;
   }),
 } satisfies TRPCRouterRecord;

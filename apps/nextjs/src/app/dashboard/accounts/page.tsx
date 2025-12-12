@@ -147,7 +147,6 @@ export default function AccountsPage() {
         </div>
       )}
 
-      {/* Empty State */}
       {!getAccounts.data && !getAccounts.isFetching && !getAccounts.isError && (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
           <h3 className="text-lg font-semibold">No accounts loaded</h3>
