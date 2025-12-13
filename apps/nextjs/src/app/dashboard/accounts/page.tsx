@@ -57,10 +57,14 @@ export default function AccountsPage() {
     }),
   );
 
-  const getAccounts = useQuery(
-    trpc.simplefin.getAccounts.queryOptions(undefined, {
-      enabled: false,
-    }),
+  // DB-backed list (always on)
+  const accountsQuery = useQuery(
+    trpc.simplefin.getAccountsFromDb.queryOptions(),
+  );
+
+  // Sync trigger (manual refresh)
+  const syncAccounts = useQuery(
+    trpc.simplefin.getAccounts.queryOptions(undefined, { enabled: false }),
   );
 
   const handleLink = () => {
@@ -69,10 +73,8 @@ export default function AccountsPage() {
   };
 
   // Safe access with type casting or checking
-  const accountsData = getAccounts.data as
-    | { accounts: SimpleFinAccount[] }
-    | undefined;
-  const accounts = accountsData?.accounts ?? [];
+  const accountsData = accountsQuery.data as SimpleFinAccount[] | undefined;
+  const accounts = accountsData ?? [];
 
   return (
     <div className="container mx-auto max-w-5xl py-8">
@@ -87,12 +89,12 @@ export default function AccountsPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => void getAccounts.refetch()}
-            disabled={getAccounts.isFetching}
+            onClick={() => void syncAccounts.refetch()}
+            disabled={syncAccounts.isFetching}
           >
             <RefreshCcw
               className={`mr-2 h-4 w-4 ${
-                getAccounts.isFetching ? "animate-spin" : ""
+                syncAccounts.isFetching ? "animate-spin" : ""
               }`}
             />
             Refresh
@@ -141,53 +143,62 @@ export default function AccountsPage() {
         </div>
       </div>
 
-      {getAccounts.isError && (
+      {accountsQuery.isError && (
         <div className="bg-destructive/10 text-destructive mb-6 rounded-lg p-4">
-          Error loading accounts: {getAccounts.error.message}
+          Error loading accounts: {accountsQuery.error.message}
         </div>
       )}
 
-      {!getAccounts.data && !getAccounts.isFetching && !getAccounts.isError && (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-          <h3 className="text-lg font-semibold">No accounts loaded</h3>
-          <p className="text-muted-foreground mt-1">
-            Click &quot;Refresh&quot; to load your accounts.
-          </p>
-          <Button
-            variant="outline"
-            className="mt-4"
-            onClick={() => void getAccounts.refetch()}
-          >
-            Load Accounts
-          </Button>
+      {syncAccounts.isError && (
+        <div className="bg-destructive/10 text-destructive mb-6 rounded-lg p-4">
+          Sync failed: {syncAccounts.error.message}
         </div>
       )}
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {accounts.map((account) => (
-          <Card key={account.id}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-medium">
-                {account.name}
-              </CardTitle>
-              <CardDescription className="capitalize">
-                {account.org?.name ?? account.currency}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency: account.currency || "USD",
-                }).format(parseFloat(account.balance))}
-              </div>
-              <p className="text-muted-foreground mt-1 text-xs">
-                Last synced: {new Date().toLocaleDateString()}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {accountsQuery.isFetching && accounts.length === 0 && (
+        <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-sm">
+          Loading accounts…
+        </div>
+      )}
+
+      {accounts.length === 0 &&
+        !accountsQuery.isFetching &&
+        !accountsQuery.isError && (
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
+            <h3 className="text-lg font-semibold">No accounts</h3>
+            <p className="text-muted-foreground mt-1">
+              Link or connect your SimpleFin account to see it here.
+            </p>
+          </div>
+        )}
+
+      {accounts.length > 0 && (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {accounts.map((account) => (
+            <Card key={account.id}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-medium">
+                  {account.name}
+                </CardTitle>
+                <CardDescription className="capitalize">
+                  {account.org?.name ?? account.currency}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: account.currency || "USD",
+                  }).format(parseFloat(account.balance))}
+                </div>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  Last synced: {new Date().toLocaleDateString()}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
