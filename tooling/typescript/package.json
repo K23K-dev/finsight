@@ -1,0 +1,7 @@
+{
+  "name": "@finsight/tsconfig",
+  "private": true,
+  "files": [
+    "*.json"
+  ]
+}

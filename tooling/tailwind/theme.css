@@ -1,0 +1,199 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  color-scheme: light;
+
+  /* Financial Strata — warm mineral neutrals with semantic color only. */
+  --background: #f2f0eb;
+  --foreground: #191a17;
+  --card: #faf9f6;
+  --card-foreground: #191a17;
+  --popover: #fffefa;
+  --popover-foreground: #191a17;
+  --primary: #1b1c19;
+  --primary-foreground: #f5f2eb;
+  --secondary: #e5e2da;
+  --secondary-foreground: #292a26;
+  --muted: #e9e6df;
+  --muted-foreground: #62645d;
+  --accent: #dfddd5;
+  --accent-foreground: #242521;
+  --destructive: #b94745;
+  --destructive-foreground: #ffffff;
+  --positive: #477b37;
+  --positive-foreground: #ffffff;
+  --negative: #b94745;
+  --negative-foreground: #ffffff;
+  --review: #86501f;
+  --review-foreground: #ffffff;
+  --review-muted: #efe2d2;
+  --mineral: #a7623a;
+  --mineral-muted: #eadbd0;
+  --border: #d5d1c8;
+  --input: #72766e;
+  --ring: #343630;
+  --chart-1: #477b37;
+  --chart-2: #a7623a;
+  --chart-3: #777b72;
+  --chart-4: #b27a39;
+  --chart-5: #a85150;
+  --radius: 0.5rem;
+  --sidebar: #e9e6df;
+  --sidebar-foreground: #343530;
+  --sidebar-primary: #1b1c19;
+  --sidebar-primary-foreground: #f5f2eb;
+  --sidebar-accent: #dcd9d1;
+  --sidebar-accent-foreground: #1e1f1c;
+  --sidebar-border: #d1cdc4;
+  --sidebar-ring: #343630;
+
+  --shadow-2xs: 0 1px 1px rgb(25 26 23 / 0.03);
+  --shadow-xs: 0 1px 2px rgb(25 26 23 / 0.05);
+  --shadow-sm: 0 2px 6px rgb(25 26 23 / 0.07);
+  --shadow: 0 4px 12px rgb(25 26 23 / 0.08);
+  --shadow-md: 0 8px 22px rgb(25 26 23 / 0.1);
+  --shadow-lg: 0 12px 32px rgb(25 26 23 / 0.12);
+  --shadow-xl: 0 18px 44px rgb(25 26 23 / 0.14);
+  --shadow-2xl: 0 24px 56px rgb(25 26 23 / 0.16);
+  --tracking-normal: 0rem;
+  --spacing: 0.25rem;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #070807;
+  --foreground: #e8e5de;
+  --card: #111310;
+  --card-foreground: #e8e5de;
+  --popover: #171916;
+  --popover-foreground: #ece9e2;
+  --primary: #ece8df;
+  --primary-foreground: #171814;
+  --secondary: #1c1e1a;
+  --secondary-foreground: #dfdcd4;
+  --muted: #191b18;
+  --muted-foreground: #a5a198;
+  --accent: #252720;
+  --accent-foreground: #f2efe8;
+  --destructive: #e27d79;
+  --destructive-foreground: #20090e;
+  --positive: #93d475;
+  --positive-foreground: #091306;
+  --negative: #e27d79;
+  --negative-foreground: #20090e;
+  --review: #d89a55;
+  --review-foreground: #211400;
+  --review-muted: #302419;
+  --mineral: #bd7547;
+  --mineral-muted: #35251c;
+  --border: #2b2d28;
+  --input: #6f736a;
+  --ring: #d8d4cc;
+  --chart-1: #93d475;
+  --chart-2: #bd7547;
+  --chart-3: #a9a59d;
+  --chart-4: #d89a55;
+  --chart-5: #e27d79;
+  --sidebar: #0a0b0a;
+  --sidebar-foreground: #d4d1ca;
+  --sidebar-primary: #ece8df;
+  --sidebar-primary-foreground: #171814;
+  --sidebar-accent: #1e201c;
+  --sidebar-accent-foreground: #f0ede6;
+  --sidebar-border: #282a25;
+  --sidebar-ring: #d8d4cc;
+
+  --shadow-2xs: 0 1px 1px rgb(0 0 0 / 0.16);
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.2);
+  --shadow-sm: 0 2px 6px rgb(0 0 0 / 0.22);
+  --shadow: 0 4px 12px rgb(0 0 0 / 0.26);
+  --shadow-md: 0 8px 22px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.34);
+  --shadow-xl: 0 18px 44px rgb(0 0 0 / 0.38);
+  --shadow-2xl: 0 24px 56px rgb(0 0 0 / 0.42);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-positive: var(--positive);
+  --color-positive-foreground: var(--positive-foreground);
+  --color-negative: var(--negative);
+  --color-negative-foreground: var(--negative-foreground);
+  --color-review: var(--review);
+  --color-review-foreground: var(--review-foreground);
+  --color-review-muted: var(--review-muted);
+  --color-mineral: var(--mineral);
+  --color-mineral-muted: var(--mineral-muted);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: var(--font-manrope);
+  --font-display: var(--font-instrument-serif);
+  --font-mono: var(--font-jetbrains-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 2px);
+  --radius-2xl: calc(var(--radius) + 4px);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+
+  --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
+  --tracking-tight: calc(var(--tracking-normal) - 0.025em);
+  --tracking-normal: var(--tracking-normal);
+  --tracking-wide: calc(var(--tracking-normal) + 0.025em);
+  --tracking-wider: calc(var(--tracking-normal) + 0.05em);
+  --tracking-widest: calc(var(--tracking-normal) + 0.1em);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+
+  button,
+  [role="button"] {
+    @apply cursor-pointer;
+  }
+}

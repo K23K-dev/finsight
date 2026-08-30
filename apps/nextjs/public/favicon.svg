@@ -1,0 +1,15 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="8" fill="#0f0f0f"/>
+  <!-- Isometric bar 1: short, front-left -->
+  <path d="M5 20L10 17L15 20L10 23Z" fill="white"/>
+  <path d="M5 20V23L10 26V23Z" fill="white" fill-opacity="0.4"/>
+  <path d="M15 20V23L10 26V23Z" fill="white" fill-opacity="0.15"/>
+  <!-- Isometric bar 2: medium, center -->
+  <path d="M11 15L16 12L21 15L16 18Z" fill="white"/>
+  <path d="M11 15V21L16 24V18Z" fill="white" fill-opacity="0.4"/>
+  <path d="M21 15V21L16 24V18Z" fill="white" fill-opacity="0.15"/>
+  <!-- Isometric bar 3: tall, back-right -->
+  <path d="M17 9L22 6L27 9L22 12Z" fill="white"/>
+  <path d="M17 9V19L22 22V12Z" fill="white" fill-opacity="0.4"/>
+  <path d="M27 9V19L22 22V12Z" fill="white" fill-opacity="0.15"/>
+</svg>
