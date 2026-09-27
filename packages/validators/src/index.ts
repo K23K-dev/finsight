@@ -38,12 +38,6 @@ export const SPENDING_CATEGORIES = [
 
 export type SpendingCategory = (typeof SPENDING_CATEGORIES)[number]["id"];
 
-export interface SpendingCategoryDefinition {
-  readonly id: SpendingCategory;
-  readonly label: string;
-  readonly color: string;
-}
-
 export const SPENDING_CATEGORY_NAMES = [
   SPENDING_CATEGORIES[0].id,
   ...SPENDING_CATEGORIES.slice(1).map(({ id }) => id),

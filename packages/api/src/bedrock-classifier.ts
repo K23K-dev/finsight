@@ -100,7 +100,6 @@ interface Candidate {
   description: string;
   customDescription: string | null;
   payee: string | null;
-  merchantName: string | null;
   providerCategory: string | null;
   accountType: string | null;
   amount: string;
@@ -154,7 +153,6 @@ function createRequest(modelId: string, candidates: readonly Candidate[]) {
       sanitize(candidate.description) ??
       "unknown merchant",
     payee: sanitize(candidate.payee),
-    merchantName: sanitize(candidate.merchantName),
     providerCategory: sanitize(candidate.providerCategory),
     accountType: sanitize(candidate.accountType),
     amountBand: amountBand(candidate.amount),
@@ -229,15 +227,7 @@ function parseResponse(response: ConverseOutput, expectedCount: number) {
   });
 }
 
-async function categorizeBatch({
-  db,
-  userId,
-  limit = MAX_BATCH_SIZE,
-}: {
-  db: typeof DB;
-  userId: string;
-  limit?: number;
-}) {
+async function categorizeBatch(db: typeof DB, userId: string) {
   const modelId = process.env.BEDROCK_MODEL_ID;
   const region = process.env.AWS_REGION ?? "us-east-1";
   const roleArn = process.env.AWS_ROLE_ARN;
@@ -251,7 +241,6 @@ async function categorizeBatch({
       description: Transaction.description,
       customDescription: Transaction.customDescription,
       payee: Transaction.payee,
-      merchantName: Transaction.merchantName,
       providerCategory: Transaction.providerCategory,
       accountType: FinancialAccount.accountType,
       amount: Transaction.amount,
@@ -276,7 +265,7 @@ async function categorizeBatch({
       ),
     )
     .orderBy(desc(Transaction.postedDate), desc(Transaction.id))
-    .limit(Math.max(1, Math.min(limit, MAX_BATCH_SIZE)));
+    .limit(MAX_BATCH_SIZE);
 
   if (candidates.length === 0) {
     return { examined: 0, categorized: 0, abstained: 0 };
@@ -348,16 +337,17 @@ async function categorizeBatch({
 }
 
 export async function categorizeTransactionsWithBedrock(
-  options: Parameters<typeof categorizeBatch>[0],
+  db: typeof DB,
+  userId: string,
 ) {
-  if (IN_FLIGHT_USERS.has(options.userId)) {
+  if (IN_FLIGHT_USERS.has(userId)) {
     throw new Error("Transaction categorization is already running.");
   }
 
-  IN_FLIGHT_USERS.add(options.userId);
+  IN_FLIGHT_USERS.add(userId);
   try {
-    return await categorizeBatch(options);
+    return await categorizeBatch(db, userId);
   } finally {
-    IN_FLIGHT_USERS.delete(options.userId);
+    IN_FLIGHT_USERS.delete(userId);
   }
 }

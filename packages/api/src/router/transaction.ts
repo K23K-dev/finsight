@@ -2,7 +2,7 @@ import type { TRPCRouterRecord } from "@trpc/server";
 import { z } from "zod";
 
 import type { db as DB } from "@finsight/db/client";
-import { and, eq, gt, gte, inArray, lt, lte, or, sql } from "@finsight/db";
+import { and, eq, gt, inArray, lt, or, sql } from "@finsight/db";
 import { FinancialAccount, Transaction } from "@finsight/db/schema";
 import { spendingCategorySchema } from "@finsight/validators";
 
@@ -10,47 +10,16 @@ import { categorizeTransactionsWithBedrock } from "../bedrock-classifier";
 import { protectedProcedure, requireFound } from "../trpc";
 import { visibleAccountFilter } from "../utils";
 
-const classifyTransactionsSchema = z.object({
-  limit: z.number().int().min(1).max(20).default(20),
-});
-
-const transactionFilterShape = {
-  startDate: z.coerce.date().optional(),
-  endDate: z.coerce.date().optional(),
+const transactionPageSchema = z.object({
   flow: z.enum(["income", "expense"]).optional(),
-};
-
-function hasValidDateRange({
-  startDate,
-  endDate,
-}: {
-  startDate?: Date;
-  endDate?: Date;
-}) {
-  return (
-    startDate === undefined || endDate === undefined || startDate <= endDate
-  );
-}
-
-const invalidDateRange = {
-  message: "Start date must be before or equal to end date.",
-  path: ["endDate"],
-};
-
-const transactionPageSchema = z
-  .object({
-    ...transactionFilterShape,
-    includeHidden: z.boolean().default(false),
-    cursor: z.object({ postedDate: z.coerce.date(), id: z.string() }).nullish(),
-    limit: z.number().int().min(1).max(100).default(50),
-    search: z.string().trim().min(1).max(256).optional(),
-  })
-  .refine(hasValidDateRange, invalidDateRange);
+  includeHidden: z.boolean().default(false),
+  cursor: z.object({ postedDate: z.coerce.date(), id: z.string() }).nullish(),
+  limit: z.number().int().min(1).max(100).default(50),
+  search: z.string().trim().min(1).max(256).optional(),
+});
 
 interface TransactionFilters {
   includeHidden?: boolean;
-  startDate?: Date;
-  endDate?: Date;
   flow?: "income" | "expense";
   search?: string;
 }
@@ -79,12 +48,6 @@ function buildTransactionConditions(
   if (!filters.includeHidden) {
     conditions.push(eq(Transaction.hidden, false));
   }
-  if (filters.startDate) {
-    conditions.push(gte(Transaction.postedDate, filters.startDate));
-  }
-  if (filters.endDate) {
-    conditions.push(lte(Transaction.postedDate, filters.endDate));
-  }
   if (filters.flow === "income") {
     conditions.push(gt(Transaction.amount, "0"));
   } else if (filters.flow === "expense") {
@@ -100,7 +63,6 @@ function buildTransactionConditions(
       sql`${Transaction.customDescription} ILIKE ${pattern} ESCAPE '!'`,
       sql`${Transaction.description} ILIKE ${pattern} ESCAPE '!'`,
       sql`${Transaction.payee} ILIKE ${pattern} ESCAPE '!'`,
-      sql`${Transaction.merchantName} ILIKE ${pattern} ESCAPE '!'`,
       sql`${Transaction.spendingCategory}::text ILIKE ${categoryPattern} ESCAPE '!'`,
     );
     if (searchCondition) conditions.push(searchCondition);
@@ -139,15 +101,9 @@ async function updateOwnedTransaction(
 }
 
 export const transactionRouter = {
-  categorizeUncategorized: protectedProcedure
-    .input(classifyTransactionsSchema.optional())
-    .mutation(({ ctx, input }) =>
-      categorizeTransactionsWithBedrock({
-        db: ctx.db,
-        userId: ctx.session.user.id,
-        limit: input?.limit ?? 20,
-      }),
-    ),
+  categorizeUncategorized: protectedProcedure.mutation(({ ctx }) =>
+    categorizeTransactionsWithBedrock(ctx.db, ctx.session.user.id),
+  ),
 
   getPage: protectedProcedure
     .input(transactionPageSchema)

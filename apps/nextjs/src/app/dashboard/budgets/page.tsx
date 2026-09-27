@@ -69,14 +69,6 @@ export default function BudgetsPage() {
     }),
   );
 
-  const handleEdit = (budget: Budget) => {
-    setEditingBudget(budget);
-  };
-
-  const handleDelete = (budget: Budget) => {
-    setDeletingBudget(budget);
-  };
-
   const handleCreate = (values: {
     name: string;
     description: string;
@@ -163,8 +155,8 @@ export default function BudgetsPage() {
                 <BudgetCard
                   key={budget.id}
                   budget={budget}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
+                  onEdit={setEditingBudget}
+                  onDelete={setDeletingBudget}
                 />
               ))}
             </div>

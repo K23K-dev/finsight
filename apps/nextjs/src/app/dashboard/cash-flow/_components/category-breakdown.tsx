@@ -7,11 +7,11 @@ import { formatCurrency } from "~/utils/format";
 
 interface CategoryData {
   category: string;
-  income: number;
   expenses: number;
 }
 
 interface CategoryBreakdownProps {
+  /** Spending categories, largest first. */
   categories: CategoryData[];
   isLoading?: boolean;
 }
@@ -20,31 +20,22 @@ export function CategoryBreakdown({
   categories,
   isLoading,
 }: CategoryBreakdownProps) {
-  const { totalSpending, sortedCategories, displayedCategories } =
-    useMemo(() => {
-      const spending = categories.filter((cat) => cat.expenses > 0);
-      const total = spending.reduce((sum, cat) => sum + cat.expenses, 0);
-      const sorted = [...spending].sort((a, b) => b.expenses - a.expenses);
-      const leading = sorted.slice(0, 5);
-      const remaining = sorted.slice(5);
-      const displayed =
-        remaining.length > 1
-          ? [
-              ...leading,
-              {
-                category: "Other categories",
-                income: remaining.reduce((sum, cat) => sum + cat.income, 0),
-                expenses: remaining.reduce((sum, cat) => sum + cat.expenses, 0),
-              },
-            ]
-          : sorted;
+  const { totalSpending, displayedCategories } = useMemo(() => {
+    const total = categories.reduce((sum, cat) => sum + cat.expenses, 0);
+    const remaining = categories.slice(5);
+    const displayed =
+      remaining.length > 1
+        ? [
+            ...categories.slice(0, 5),
+            {
+              category: "Other categories",
+              expenses: remaining.reduce((sum, cat) => sum + cat.expenses, 0),
+            },
+          ]
+        : categories;
 
-      return {
-        totalSpending: total,
-        sortedCategories: sorted,
-        displayedCategories: displayed,
-      };
-    }, [categories]);
+    return { totalSpending: total, displayedCategories: displayed };
+  }, [categories]);
 
   if (isLoading) {
     return (
@@ -65,7 +56,7 @@ export function CategoryBreakdown({
     );
   }
 
-  if (sortedCategories.length === 0) {
+  if (categories.length === 0) {
     return (
       <section className="border-border/60 bg-card/45 rounded-lg border p-5 sm:p-6">
         <h2 className="text-lg font-semibold">Spending by category</h2>

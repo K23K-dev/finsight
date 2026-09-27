@@ -1,8 +1,7 @@
 "use client";
 
-import type { QueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   createTRPCClient,
   httpBatchStreamLink,
@@ -14,7 +13,11 @@ import SuperJSON from "superjson";
 import type { AppRouter } from "@finsight/api";
 
 import { env } from "~/env";
-import { createQueryClient } from "./query-client";
+
+const createQueryClient = () =>
+  new QueryClient({
+    defaultOptions: { queries: { staleTime: 30 * 1000 } },
+  });
 
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
 const getQueryClient = () => {
@@ -40,15 +43,8 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
             env.NODE_ENV === "development" ||
             (op.direction === "down" && op.result instanceof Error),
         }),
-        httpBatchStreamLink({
-          transformer: SuperJSON,
-          url: getBaseUrl() + "/api/trpc",
-          headers() {
-            const headers = new Headers();
-            headers.set("x-trpc-source", "nextjs-react");
-            return headers;
-          },
-        }),
+        // Queries only run in the browser, so a same-origin path is enough.
+        httpBatchStreamLink({ transformer: SuperJSON, url: "/api/trpc" }),
       ],
     }),
   );
@@ -61,9 +57,3 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
     </QueryClientProvider>
   );
 }
-
-const getBaseUrl = () => {
-  if (typeof window !== "undefined") return window.location.origin;
-  if (env.VERCEL_URL) return `https://${env.VERCEL_URL}`;
-  return `http://localhost:${env.PORT}`;
-};

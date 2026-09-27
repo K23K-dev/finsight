@@ -6,7 +6,6 @@ import type { db as DB } from "@finsight/db/client";
 import { and, eq, isNull, notInArray, or, sql } from "@finsight/db";
 import {
   BalanceSnapshot,
-  CAPTURED_BALANCE_SOURCE,
   Connection,
   FinancialAccount,
   Transaction,
@@ -237,15 +236,11 @@ async function writeAccountSet(
           userId,
           balance,
           date: syncedAt.toISOString().slice(0, 10),
-          source: CAPTURED_BALANCE_SOURCE,
         })),
       )
       .onConflictDoUpdate({
         target: [BalanceSnapshot.accountId, BalanceSnapshot.date],
-        set: {
-          balance: sql`excluded.balance`,
-          source: sql`excluded.source`,
-        },
+        set: { balance: sql`excluded.balance` },
       });
   }
 

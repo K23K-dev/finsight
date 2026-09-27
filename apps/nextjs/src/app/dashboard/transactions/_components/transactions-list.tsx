@@ -3,15 +3,13 @@ import type { ReactNode } from "react";
 import type { RouterOutputs } from "@finsight/api";
 import { cn } from "@finsight/ui";
 
-import type { Category } from "./transaction-row";
 import { TransactionRow } from "./transaction-row";
 
 type Transaction = RouterOutputs["transaction"]["getPage"]["items"][number];
 
 interface TransactionsListProps {
-  filteredPendingTransactions: readonly Transaction[];
-  filteredDateBuckets: readonly (readonly [string, readonly Transaction[]])[];
-  categories: readonly Category[];
+  pendingTransactions: readonly Transaction[];
+  dateGroups: readonly (readonly [string, readonly Transaction[]])[];
   getAccountName: (accountId: string) => string;
   getAccountInstitution: (accountId: string) => string | null;
   onCategoryChange: (transactionId: string, category: string | null) => void;
@@ -23,9 +21,8 @@ interface TransactionsListProps {
 }
 
 export function TransactionsList({
-  filteredPendingTransactions,
-  filteredDateBuckets,
-  categories,
+  pendingTransactions,
+  dateGroups,
   getAccountName,
   getAccountInstitution,
   onCategoryChange,
@@ -42,15 +39,14 @@ export function TransactionsList({
         <span className="text-right">Actions</span>
       </div>
 
-      {filteredPendingTransactions.length > 0 && (
+      {pendingTransactions.length > 0 && (
         <TransactionGroup label="Pending" review>
-          {filteredPendingTransactions.map((transaction) => (
+          {pendingTransactions.map((transaction) => (
             <TransactionRow
               key={transaction.id}
               transaction={transaction}
               accountName={getAccountName(transaction.accountId)}
               accountInstitution={getAccountInstitution(transaction.accountId)}
-              categories={categories}
               onCategoryChange={onCategoryChange}
               onDescriptionChange={onDescriptionChange}
               onToggleHidden={onToggleHidden}
@@ -59,7 +55,7 @@ export function TransactionsList({
         </TransactionGroup>
       )}
 
-      {filteredDateBuckets.map(([date, rows]) => (
+      {dateGroups.map(([date, rows]) => (
         <TransactionGroup key={date} label={date}>
           {rows.map((transaction) => (
             <TransactionRow
@@ -67,7 +63,6 @@ export function TransactionsList({
               transaction={transaction}
               accountName={getAccountName(transaction.accountId)}
               accountInstitution={getAccountInstitution(transaction.accountId)}
-              categories={categories}
               onCategoryChange={onCategoryChange}
               onDescriptionChange={onDescriptionChange}
               onToggleHidden={onToggleHidden}

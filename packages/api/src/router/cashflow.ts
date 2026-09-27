@@ -13,10 +13,9 @@ import {
 import { z } from "zod";
 
 import type { TimeRange } from "@finsight/validators";
-import { and, eq, gte, lte, sql } from "@finsight/db";
+import { and, desc, eq, gte, lt, lte, sql } from "@finsight/db";
 import {
   BalanceSnapshot,
-  CAPTURED_BALANCE_SOURCE,
   FinancialAccount,
   Transaction,
 } from "@finsight/db/schema";
@@ -24,6 +23,9 @@ import { dateRangeSchema, timeRangeSchema } from "@finsight/validators";
 
 import { protectedProcedure } from "../trpc";
 import { parseNumeric } from "../utils";
+
+const incomeTotal = sql<string>`COALESCE(SUM(CASE WHEN ${Transaction.amount} > 0 THEN ${Transaction.amount} ELSE 0 END), 0)`;
+const expenseTotal = sql<string>`COALESCE(SUM(CASE WHEN ${Transaction.amount} < 0 THEN ABS(${Transaction.amount}) ELSE 0 END), 0)`;
 
 function resolveStartDate(range: TimeRange): Date {
   const now = new Date();
@@ -95,10 +97,7 @@ export const cashflowRouter = {
       const { startDate, endDate } = input;
 
       const result = await ctx.db
-        .select({
-          income: sql<string>`COALESCE(SUM(CASE WHEN ${Transaction.amount}::numeric > 0 THEN ${Transaction.amount}::numeric ELSE 0 END), 0)`,
-          expenses: sql<string>`COALESCE(SUM(CASE WHEN ${Transaction.amount}::numeric < 0 THEN ABS(${Transaction.amount}::numeric) ELSE 0 END), 0)`,
-        })
+        .select({ income: incomeTotal, expenses: expenseTotal })
         .from(Transaction)
         .innerJoin(
           FinancialAccount,
@@ -118,31 +117,31 @@ export const cashflowRouter = {
     .input(dateRangeSchema)
     .query(async ({ ctx, input }) => {
       const { startDate, endDate } = input;
+      const category = sql<string>`COALESCE(${Transaction.spendingCategory}::text, 'Uncategorized')`;
+      const expenses = sql<string>`SUM(ABS(${Transaction.amount}))`;
 
       const result = await ctx.db
-        .select({
-          category: sql<string>`COALESCE(${Transaction.spendingCategory}::text, 'Uncategorized')`,
-          income: sql<string>`COALESCE(SUM(CASE WHEN ${Transaction.amount}::numeric > 0 THEN ${Transaction.amount}::numeric ELSE 0 END), 0)`,
-          expenses: sql<string>`COALESCE(SUM(CASE WHEN ${Transaction.amount}::numeric < 0 THEN ABS(${Transaction.amount}::numeric) ELSE 0 END), 0)`,
-        })
+        .select({ category, expenses })
         .from(Transaction)
         .innerJoin(
           FinancialAccount,
           eq(Transaction.accountId, FinancialAccount.id),
         )
         .where(
-          visibleTransactionJoinFilter(ctx.session.user.id, startDate, endDate),
+          and(
+            visibleTransactionJoinFilter(
+              ctx.session.user.id,
+              startDate,
+              endDate,
+            ),
+            lt(Transaction.amount, "0"),
+          ),
         )
-        .groupBy(
-          sql`COALESCE(${Transaction.spendingCategory}::text, 'Uncategorized')`,
-        )
-        .orderBy(
-          sql`COALESCE(SUM(CASE WHEN ${Transaction.amount}::numeric < 0 THEN ABS(${Transaction.amount}::numeric) ELSE 0 END), 0) DESC`,
-        );
+        .groupBy(category)
+        .orderBy(desc(expenses));
 
       return result.map((row) => ({
         category: row.category,
-        income: parseNumeric(row.income),
         expenses: parseNumeric(row.expenses),
       }));
     }),
@@ -167,11 +166,7 @@ export const cashflowRouter = {
           : sql<string>`TO_CHAR(DATE_TRUNC('week', ${Transaction.postedDate} + INTERVAL '1 day') - INTERVAL '1 day', 'YYYY-MM-DD')`;
 
       const totals = await ctx.db
-        .select({
-          periodStart,
-          income: sql<string>`COALESCE(SUM(CASE WHEN ${Transaction.amount}::numeric > 0 THEN ${Transaction.amount}::numeric ELSE 0 END), 0)`,
-          expenses: sql<string>`COALESCE(SUM(CASE WHEN ${Transaction.amount}::numeric < 0 THEN ABS(${Transaction.amount}::numeric) ELSE 0 END), 0)`,
-        })
+        .select({ periodStart, income: incomeTotal, expenses: expenseTotal })
         .from(Transaction)
         .innerJoin(
           FinancialAccount,
@@ -244,7 +239,6 @@ export const cashflowRouter = {
         .where(
           and(
             eq(BalanceSnapshot.userId, ctx.session.user.id),
-            eq(BalanceSnapshot.source, CAPTURED_BALANCE_SOURCE),
             eq(FinancialAccount.hidden, false),
             gte(BalanceSnapshot.date, toUtcDateKey(startDate)),
           ),

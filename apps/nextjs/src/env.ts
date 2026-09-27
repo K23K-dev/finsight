@@ -10,7 +10,6 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
-    PORT: z.coerce.number().int().positive().default(3000),
   },
   server: {
     AWS_REGION: z.string().min(1).default("us-east-1"),
@@ -29,7 +28,6 @@ export const env = createEnv({
    */
   experimental__runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
-    PORT: process.env.PORT,
 
     NEXT_PUBLIC_LOGOKIT_TOKEN: process.env.NEXT_PUBLIC_LOGOKIT_TOKEN,
   },

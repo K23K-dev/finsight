@@ -23,15 +23,6 @@ interface BudgetCardProps {
 }
 
 export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
-  const handleMenuAction = (
-    e: React.MouseEvent,
-    action: (budget: Budget) => void,
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-    action(budget);
-  };
-
   const {
     actualProgress,
     progress,
@@ -143,15 +134,13 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={(event) => handleMenuAction(event, onEdit)}
-            >
+            <DropdownMenuItem onClick={() => onEdit(budget)}>
               <Pencil className="mr-2 h-4 w-4" />
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-destructive"
-              onClick={(event) => handleMenuAction(event, onDelete)}
+              onClick={() => onDelete(budget)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Delete

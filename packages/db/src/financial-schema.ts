@@ -15,8 +15,6 @@ import {
 
 import { user } from "./auth-schema";
 
-export const CAPTURED_BALANCE_SOURCE = "simplefin_sync";
-
 export const spendingCategoryEnum = pgEnum(
   "spending_category",
   SPENDING_CATEGORY_NAMES,
@@ -106,8 +104,6 @@ export const Transaction = pgTable(
     hidden: t.boolean().default(false).notNull(),
     spendingCategory: spendingCategoryEnum(),
     spendingCategorySource: classificationSourceEnum(),
-    merchantName: t.text(),
-    merchantDomain: t.text(),
     createdAt: t.timestamp().defaultNow().notNull(),
   }),
   (t) => ({
@@ -140,7 +136,6 @@ export const BalanceSnapshot = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     balance: t.numeric({ precision: 19, scale: 2 }).notNull(),
     date: t.date().notNull(),
-    source: t.text(),
     createdAt: t.timestamp().defaultNow().notNull(),
   }),
   (t) => ({

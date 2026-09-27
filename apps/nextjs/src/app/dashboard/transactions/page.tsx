@@ -7,14 +7,13 @@ import { BrainCircuit, Eye, EyeOff, RefreshCcw, Search } from "lucide-react";
 import { cn } from "@finsight/ui";
 import { Button } from "@finsight/ui/button";
 import { Input } from "@finsight/ui/input";
-import { SPENDING_CATEGORIES } from "@finsight/validators";
 
 import { useTRPC } from "~/trpc/react";
 import { EmptyState } from "../_components/empty-state";
 import { PageHeader } from "../_components/page-header";
 import { useSimpleFinSync } from "../_hooks/use-simplefin-sync";
 import { TransactionsList } from "./_components/transactions-list";
-import { useTransactionFilters } from "./_hooks/use-transaction-filters";
+import { useTransactionGroups } from "./_hooks/use-transaction-groups";
 import { useTransactionMutations } from "./_hooks/use-transaction-mutations";
 
 export default function TransactionsPage() {
@@ -45,7 +44,6 @@ export default function TransactionsPage() {
 
   const transactions =
     transactionsQuery.data?.pages.flatMap((page) => page.items) ?? [];
-  const categories = SPENDING_CATEGORIES;
 
   const {
     categorizeMutation,
@@ -56,15 +54,15 @@ export default function TransactionsPage() {
   } = useTransactionMutations();
 
   const {
-    filteredPendingTransactions,
-    filteredDateBuckets,
+    pendingTransactions,
+    dateGroups,
     getAccountName,
     getAccountInstitution,
-  } = useTransactionFilters(transactions, accountsQuery.data);
+  } = useTransactionGroups(transactions, accountsQuery.data);
 
   const hasTransactions = (transactionStats?.total ?? transactions.length) > 0;
   const hasSearchResults =
-    filteredPendingTransactions.length > 0 || filteredDateBuckets.length > 0;
+    pendingTransactions.length > 0 || dateGroups.length > 0;
 
   return (
     <div className="flex h-full flex-col">
@@ -234,9 +232,8 @@ export default function TransactionsPage() {
               {hasSearchResults && (
                 <>
                   <TransactionsList
-                    filteredPendingTransactions={filteredPendingTransactions}
-                    filteredDateBuckets={filteredDateBuckets}
-                    categories={categories}
+                    pendingTransactions={pendingTransactions}
+                    dateGroups={dateGroups}
                     getAccountName={getAccountName}
                     getAccountInstitution={getAccountInstitution}
                     onCategoryChange={handleCategoryChange}

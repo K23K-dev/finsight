@@ -80,7 +80,7 @@ export function useTransactionMutations() {
   };
 
   const handleCategorize = () => {
-    categorizeMutation.mutate({ limit: 20 });
+    categorizeMutation.mutate();
   };
 
   return {

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Building2, Check, Eye, EyeOff, Pencil, X } from "lucide-react";
 
 import type { RouterOutputs } from "@finsight/api";
-import type { SpendingCategoryDefinition } from "@finsight/validators";
 import { cn } from "@finsight/ui";
 import { Input } from "@finsight/ui/input";
 import {
@@ -11,20 +10,20 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@finsight/ui/select";
-import { transactionNeedsReview } from "@finsight/validators";
+import {
+  SPENDING_CATEGORIES,
+  transactionNeedsReview,
+} from "@finsight/validators";
 
 import { formatCurrency } from "~/utils/format";
 import { Logo } from "../../_components/logo";
 
 type Transaction = RouterOutputs["transaction"]["getPage"]["items"][number];
 
-export type Category = SpendingCategoryDefinition;
-
 interface TransactionRowProps {
   transaction: Transaction;
   accountName: string;
   accountInstitution?: string | null;
-  categories: readonly Category[];
   onCategoryChange: (transactionId: string, category: string | null) => void;
   onDescriptionChange: (
     transactionId: string,
@@ -37,7 +36,6 @@ export function TransactionRow({
   transaction,
   accountName,
   accountInstitution,
-  categories,
   onCategoryChange,
   onDescriptionChange,
   onToggleHidden,
@@ -98,7 +96,7 @@ export function TransactionRow({
     }
   };
 
-  const categoryData = categories.find(
+  const categoryData = SPENDING_CATEGORIES.find(
     (category) => category.id === transaction.spendingCategory,
   );
   const categoryLabel =
@@ -113,17 +111,8 @@ export function TransactionRow({
         transaction.hidden && "opacity-55",
       )}
     >
-      <div className="bg-background/50 ring-border/50 flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg ring-1">
-        <Logo
-          domain={transaction.merchantDomain}
-          size={36}
-          className="rounded-lg"
-          fallback={
-            <span className="text-muted-foreground text-sm font-semibold">
-              {currentDescription.charAt(0).toUpperCase()}
-            </span>
-          }
-        />
+      <div className="bg-background/50 ring-border/50 text-muted-foreground flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-semibold ring-1">
+        {currentDescription.charAt(0).toUpperCase()}
       </div>
 
       <div className="min-w-0">
@@ -183,7 +172,7 @@ export function TransactionRow({
             )}
           >
             <option value="">{categoryLabel}</option>
-            {categories.map((category) => (
+            {SPENDING_CATEGORIES.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.label}
               </option>
@@ -210,7 +199,7 @@ export function TransactionRow({
             )}
           >
             <div className="flex min-w-0 items-center gap-1.5">
-              {categoryData?.color && (
+              {categoryData && (
                 <span
                   className="h-2 w-2 shrink-0 rounded-full"
                   style={{ backgroundColor: categoryData.color }}
@@ -221,16 +210,14 @@ export function TransactionRow({
             </div>
           </SelectTrigger>
           <SelectContent>
-            {categories.map((category) => (
+            {SPENDING_CATEGORIES.map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 <div className="flex items-center gap-2">
-                  {category.color && (
-                    <span
-                      className="h-2 w-2 rounded-full"
-                      style={{ backgroundColor: category.color }}
-                      aria-hidden="true"
-                    />
-                  )}
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: category.color }}
+                    aria-hidden="true"
+                  />
                   {category.label}
                 </div>
               </SelectItem>
