@@ -52,7 +52,8 @@
     "BEDROCK_MODEL_ID",
     "CRON_SECRET",
     "PORT",
-    "NEXT_PUBLIC_LOGOKIT_TOKEN"
+    "NEXT_PUBLIC_LOGOKIT_TOKEN",
+    "SYNC_QUEUE_URL"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",
