@@ -39,6 +39,9 @@ dist/
 # turbo
 .turbo
 
+# aws cdk
+cdk.out
+
 # tanstack
 .tanstack
 

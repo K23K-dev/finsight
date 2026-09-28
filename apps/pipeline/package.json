@@ -1,0 +1,33 @@
+{
+  "name": "@finsight/pipeline",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo cdk.out node_modules",
+    "deploy": "cdk deploy",
+    "diff": "cdk diff",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint --flag unstable_native_nodejs_ts_config",
+    "synth": "cdk synth",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.271.0",
+    "constructs": "^10.8.1"
+  },
+  "devDependencies": {
+    "@finsight/eslint-config": "workspace:*",
+    "@finsight/prettier-config": "workspace:*",
+    "@finsight/tsconfig": "workspace:*",
+    "@types/aws-lambda": "^8.10.163",
+    "@types/node": "catalog:",
+    "aws-cdk": "^2.1143.0",
+    "esbuild": "^0.28.2",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "tsx": "^4.23.15",
+    "typescript": "catalog:"
+  },
+  "prettier": "@finsight/prettier-config"
+}
