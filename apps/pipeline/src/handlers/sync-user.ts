@@ -1,7 +1,10 @@
 import type { SQSEvent } from "aws-lambda";
 import { TRPCError } from "@trpc/server";
 
-import { syncSimpleFinUser } from "@finsight/api/pipeline";
+import {
+  enqueueCategorization,
+  syncSimpleFinUser,
+} from "@finsight/api/pipeline";
 import { db } from "@finsight/db/client";
 
 import { logEvent, parseUserJob } from "../jobs";
@@ -26,6 +29,7 @@ export async function handler(event: SQSEvent) {
         transactions: result.transactionsSynced,
         providerErrors: result.providerErrors.length,
       });
+      await enqueueCategorization(userId);
     } catch (error) {
       const code = error instanceof TRPCError ? error.code : "UNKNOWN";
       if (PERMANENT_ERRORS.has(code)) {

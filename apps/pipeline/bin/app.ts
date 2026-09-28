@@ -8,4 +8,5 @@ const app = new App();
 new PipelineStack(app, "FinsightPipeline", {
   env: { region: "us-east-1" },
   scheduleEnabled: String(app.node.tryGetContext("scheduleEnabled")) === "true",
+  bedrockModelId: String(app.node.getContext("bedrockModelId")),
 });

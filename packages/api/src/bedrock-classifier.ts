@@ -227,7 +227,11 @@ function parseResponse(response: ConverseOutput, expectedCount: number) {
   });
 }
 
-async function categorizeBatch(db: typeof DB, userId: string) {
+/**
+ * Categorizes the user's newest uncategorized expenses, up to one batch.
+ * Returns `examined: 0` without calling Bedrock when none are left.
+ */
+export async function categorizeNextBatch(db: typeof DB, userId: string) {
   const modelId = process.env.BEDROCK_MODEL_ID;
   const region = process.env.AWS_REGION ?? "us-east-1";
   const roleArn = process.env.AWS_ROLE_ARN;
@@ -346,7 +350,7 @@ export async function categorizeTransactionsWithBedrock(
 
   IN_FLIGHT_USERS.add(userId);
   try {
-    return await categorizeBatch(db, userId);
+    return await categorizeNextBatch(db, userId);
   } finally {
     IN_FLIGHT_USERS.delete(userId);
   }

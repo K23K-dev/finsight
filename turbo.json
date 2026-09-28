@@ -53,7 +53,8 @@
     "CRON_SECRET",
     "PORT",
     "NEXT_PUBLIC_LOGOKIT_TOKEN",
-    "SYNC_QUEUE_URL"
+    "SYNC_QUEUE_URL",
+    "CATEGORIZE_QUEUE_URL"
   ],
   "globalPassThroughEnv": [
     "NODE_ENV",
