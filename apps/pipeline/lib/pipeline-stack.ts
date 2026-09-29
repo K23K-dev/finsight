@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import type { StackProps } from "aws-cdk-lib";
 import type { NodejsFunctionProps } from "aws-cdk-lib/aws-lambda-nodejs";
+import type { ITopic } from "aws-cdk-lib/aws-sns";
 import type { Construct } from "constructs";
 import {
   CfnOutput,
@@ -9,6 +10,11 @@ import {
   SecretValue,
   Stack,
 } from "aws-cdk-lib";
+import {
+  ComparisonOperator,
+  TreatMissingData,
+} from "aws-cdk-lib/aws-cloudwatch";
+import { SnsAction } from "aws-cdk-lib/aws-cloudwatch-actions";
 import { PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { Architecture, Runtime } from "aws-cdk-lib/aws-lambda";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
@@ -16,6 +22,7 @@ import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import { Schedule, ScheduleExpression } from "aws-cdk-lib/aws-scheduler";
 import { LambdaInvoke } from "aws-cdk-lib/aws-scheduler-targets";
+import { Topic } from "aws-cdk-lib/aws-sns";
 import { Queue } from "aws-cdk-lib/aws-sqs";
 
 const repoPath = (relativePath: string) =>
@@ -33,27 +40,37 @@ export class PipelineStack extends Stack {
   constructor(scope: Construct, id: string, props: PipelineStackProps) {
     super(scope, id, props);
 
+    // Dead-letter alarms notify this topic. Subscribe your email once after
+    // deploying, so the address stays out of this public repo:
+    //   aws sns subscribe --topic-arn <AlertsTopicArn> --protocol email \
+    //     --notification-endpoint <you@example.com>
+    const alerts = new Topic(this, "Alerts");
+
     const syncTimeout = Duration.minutes(2);
     const categorizeTimeout = Duration.minutes(10);
-    const sync = this.createJobQueue("Sync", syncTimeout);
-    const categorize = this.createJobQueue("Categorize", categorizeTimeout);
+    const syncQueue = this.createJobQueue("Sync", syncTimeout, alerts);
+    const categorizeQueue = this.createJobQueue(
+      "Categorize",
+      categorizeTimeout,
+      alerts,
+    );
 
     const scheduleSyncs = this.createHandler(
       "ScheduleSyncs",
       "schedule-syncs",
       {
         timeout: Duration.minutes(1),
-        environment: { SYNC_QUEUE_URL: sync.queue.queueUrl },
+        environment: { SYNC_QUEUE_URL: syncQueue.queueUrl },
       },
     );
-    sync.queue.grantSendMessages(scheduleSyncs);
+    syncQueue.grantSendMessages(scheduleSyncs);
 
     const syncUser = this.createHandler("SyncUser", "sync-user", {
       timeout: syncTimeout,
-      environment: { CATEGORIZE_QUEUE_URL: categorize.queue.queueUrl },
+      environment: { CATEGORIZE_QUEUE_URL: categorizeQueue.queueUrl },
     });
-    syncUser.addEventSource(new SqsEventSource(sync.queue, { batchSize: 1 }));
-    categorize.queue.grantSendMessages(syncUser);
+    syncUser.addEventSource(new SqsEventSource(syncQueue, { batchSize: 1 }));
+    categorizeQueue.grantSendMessages(syncUser);
 
     const categorizeUser = this.createHandler(
       "CategorizeUser",
@@ -64,7 +81,7 @@ export class PipelineStack extends Stack {
       },
     );
     categorizeUser.addEventSource(
-      new SqsEventSource(categorize.queue, { batchSize: 1 }),
+      new SqsEventSource(categorizeQueue, { batchSize: 1 }),
     );
     // Bedrock checks permission on the inference profile and on the model it
     // routes to, which can run in any of the profile's regions.
@@ -91,31 +108,49 @@ export class PipelineStack extends Stack {
       enabled: props.scheduleEnabled,
     });
 
-    new CfnOutput(this, "SyncQueueUrl", { value: sync.queue.queueUrl });
+    new CfnOutput(this, "SyncQueueUrl", { value: syncQueue.queueUrl });
     new CfnOutput(this, "CategorizeQueueUrl", {
-      value: categorize.queue.queueUrl,
+      value: categorizeQueue.queueUrl,
     });
     new CfnOutput(this, "ScheduleSyncsFunctionName", {
       value: scheduleSyncs.functionName,
     });
+    new CfnOutput(this, "AlertsTopicArn", { value: alerts.topicArn });
   }
 
   /**
    * A FIFO queue of per-user jobs. Grouping messages by user keeps one job per
-   * user in flight, and a message that fails three times moves to the DLQ.
+   * user in flight. A message that fails three times moves to a dead-letter
+   * queue, which triggers an alert.
    */
-  private createJobQueue(name: string, consumerTimeout: Duration) {
+  private createJobQueue(
+    name: string,
+    consumerTimeout: Duration,
+    alerts: ITopic,
+  ) {
     const deadLetterQueue = new Queue(this, `${name}Dlq`, {
       fifo: true,
       retentionPeriod: Duration.days(14),
     });
-    const queue = new Queue(this, `${name}Queue`, {
+    deadLetterQueue
+      .metricApproximateNumberOfMessagesVisible()
+      .createAlarm(this, `${name}DlqAlarm`, {
+        alarmDescription: `A ${name.toLowerCase()} job failed three times and is waiting in its dead-letter queue.`,
+        threshold: 1,
+        evaluationPeriods: 1,
+        comparisonOperator:
+          ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+        // Idle queues stop reporting metrics, which means nothing is waiting.
+        treatMissingData: TreatMissingData.NOT_BREACHING,
+      })
+      .addAlarmAction(new SnsAction(alerts));
+
+    return new Queue(this, `${name}Queue`, {
       fifo: true,
       // AWS recommends six times the consumer's timeout.
       visibilityTimeout: Duration.seconds(consumerTimeout.toSeconds() * 6),
       deadLetterQueue: { queue: deadLetterQueue, maxReceiveCount: 3 },
     });
-    return { queue, deadLetterQueue };
   }
 
   private createHandler(
