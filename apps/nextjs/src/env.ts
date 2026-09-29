@@ -14,7 +14,6 @@ export const env = createEnv({
   server: {
     AWS_ROLE_ARN: z.string().startsWith("arn:aws:iam::").optional(),
     CATEGORIZE_QUEUE_URL: z.url().optional(),
-    CRON_SECRET: z.string().min(16).optional(),
     POSTGRES_URL: z.url(),
   },
 
