@@ -73,6 +73,9 @@ importers:
       dotenv-cli:
         specifier: ^10.0.0
         version: 10.0.0
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
       prettier:
         specifier: 'catalog:'
         version: 3.6.2
@@ -228,9 +231,6 @@ importers:
       aws-cdk:
         specifier: ^2.1143.0
         version: 2.1143.0
-      esbuild:
-        specifier: ^0.28.2
-        version: 0.28.2
       eslint:
         specifier: 'catalog:'
         version: 9.38.0(jiti@2.6.1)

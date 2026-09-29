@@ -6,7 +6,6 @@ import { and, eq, gt, inArray, lt, or, sql } from "@finsight/db";
 import { FinancialAccount, Transaction } from "@finsight/db/schema";
 import { spendingCategorySchema } from "@finsight/validators";
 
-import { categorizeTransactionsWithBedrock } from "../bedrock-classifier";
 import { protectedProcedure, requireFound } from "../trpc";
 import { visibleAccountFilter } from "../utils";
 
@@ -101,10 +100,6 @@ async function updateOwnedTransaction(
 }
 
 export const transactionRouter = {
-  categorizeUncategorized: protectedProcedure.mutation(({ ctx }) =>
-    categorizeTransactionsWithBedrock(ctx.db, ctx.session.user.id),
-  ),
-
   getPage: protectedProcedure
     .input(transactionPageSchema)
     .query(async ({ ctx, input }) => {

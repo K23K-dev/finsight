@@ -26,23 +26,6 @@ export function useTransactionMutations() {
     }),
   );
 
-  const categorizeMutation = useMutation(
-    trpc.transaction.categorizeUncategorized.mutationOptions({
-      onSuccess: (summary) => {
-        if (summary.examined === 0) {
-          toast.success("No uncategorized transactions need review.");
-          return;
-        }
-
-        toast.success(
-          `${summary.categorized} categorized, ${summary.abstained} left for review.`,
-        );
-      },
-      onError: showMutationError,
-      onSettled: invalidateTransactionConsumers,
-    }),
-  );
-
   const updateDescriptionMutation = useMutation(
     trpc.transaction.updateDescription.mutationOptions({
       onError: showMutationError,
@@ -79,14 +62,8 @@ export function useTransactionMutations() {
     toggleHiddenMutation.mutate({ transactionId, hidden });
   };
 
-  const handleCategorize = () => {
-    categorizeMutation.mutate();
-  };
-
   return {
-    categorizeMutation,
     handleCategoryChange,
-    handleCategorize,
     handleDescriptionChange,
     handleToggleHidden,
   };

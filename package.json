@@ -25,6 +25,7 @@
   "devDependencies": {
     "@finsight/prettier-config": "workspace:*",
     "dotenv-cli": "^10.0.0",
+    "esbuild": "^0.28.2",
     "prettier": "catalog:",
     "turbo": "^2.5.8",
     "typescript": "catalog:"

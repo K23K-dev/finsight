@@ -12,9 +12,8 @@ export const env = createEnv({
       .default("development"),
   },
   server: {
-    AWS_REGION: z.string().min(1).default("us-east-1"),
     AWS_ROLE_ARN: z.string().startsWith("arn:aws:iam::").optional(),
-    BEDROCK_MODEL_ID: z.string().min(1).optional(),
+    CATEGORIZE_QUEUE_URL: z.url().optional(),
     CRON_SECRET: z.string().min(16).optional(),
     POSTGRES_URL: z.url(),
   },

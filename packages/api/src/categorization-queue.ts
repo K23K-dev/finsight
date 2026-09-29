@@ -1,6 +1,28 @@
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
+import { awsCredentialsProvider } from "@vercel/oidc-aws-credentials-provider";
 
 let sqs: SQSClient | undefined;
+
+function createClient(queueUrl: string) {
+  // Queue URLs look like https://sqs.<region>.amazonaws.com/<account>/<name>.
+  // Reading the region from the URL keeps this working on Vercel, where
+  // AWS_REGION is the function's own region.
+  const region = new URL(queueUrl).hostname.split(".")[1];
+  const roleArn = process.env.AWS_ROLE_ARN;
+
+  return new SQSClient({
+    region,
+    // On Vercel, trade the deployment's OIDC token for short-lived AWS
+    // credentials. Lambda and local runs use the default credential chain.
+    credentials: roleArn
+      ? awsCredentialsProvider({
+          roleArn,
+          clientConfig: { region },
+          roleSessionName: "finsight-web",
+        })
+      : undefined,
+  });
+}
 
 /**
  * Queues a categorization job for the user. Failures are logged rather than
@@ -15,10 +37,7 @@ export async function enqueueCategorization(userId: string) {
   }
 
   try {
-    // Queue URLs look like https://sqs.<region>.amazonaws.com/<account>/<name>.
-    // Reading the region from the URL keeps this working on Vercel, where
-    // AWS_REGION is the function's own region.
-    sqs ??= new SQSClient({ region: new URL(queueUrl).hostname.split(".")[1] });
+    sqs ??= createClient(queueUrl);
     await sqs.send(
       new SendMessageCommand({
         QueueUrl: queueUrl,

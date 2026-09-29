@@ -1,4 +1,3 @@
-import { awsCredentialsProvider } from "@vercel/oidc-aws-credentials-provider";
 import { z } from "zod/v4";
 
 import type { db as DB } from "@finsight/db/client";
@@ -11,7 +10,6 @@ import {
 
 const MAX_BATCH_SIZE = 20;
 const TIMEOUT_MS = 240_000;
-const IN_FLIGHT_USERS = new Set<string>();
 const ABSTENTION_REASONS = [
   "ambiguous_merchant",
   "insufficient_context",
@@ -234,7 +232,6 @@ function parseResponse(response: ConverseOutput, expectedCount: number) {
 export async function categorizeNextBatch(db: typeof DB, userId: string) {
   const modelId = process.env.BEDROCK_MODEL_ID;
   const region = process.env.AWS_REGION ?? "us-east-1";
-  const roleArn = process.env.AWS_ROLE_ARN;
   if (!modelId) {
     throw new Error("Bedrock transaction categorization is not configured.");
   }
@@ -278,18 +275,8 @@ export async function categorizeNextBatch(db: typeof DB, userId: string) {
   const { BedrockRuntimeClient, ConverseCommand } = await import(
     "@aws-sdk/client-bedrock-runtime"
   );
-  const credentials = roleArn
-    ? awsCredentialsProvider({
-        roleArn,
-        clientConfig: { region },
-        roleSessionName: "finsight-bedrock",
-      })
-    : undefined;
-  const client = new BedrockRuntimeClient({
-    region,
-    credentials,
-    maxAttempts: 3,
-  });
+  // Runs in the categorize Lambda, which authenticates with its own role.
+  const client = new BedrockRuntimeClient({ region, maxAttempts: 3 });
 
   let response: ConverseOutput;
   try {
@@ -338,20 +325,4 @@ export async function categorizeNextBatch(db: typeof DB, userId: string) {
     categorized,
     abstained: candidates.length - categorized,
   };
-}
-
-export async function categorizeTransactionsWithBedrock(
-  db: typeof DB,
-  userId: string,
-) {
-  if (IN_FLIGHT_USERS.has(userId)) {
-    throw new Error("Transaction categorization is already running.");
-  }
-
-  IN_FLIGHT_USERS.add(userId);
-  try {
-    return await categorizeNextBatch(db, userId);
-  } finally {
-    IN_FLIGHT_USERS.delete(userId);
-  }
 }

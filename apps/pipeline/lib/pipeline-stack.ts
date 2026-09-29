@@ -4,6 +4,7 @@ import type { NodejsFunctionProps } from "aws-cdk-lib/aws-lambda-nodejs";
 import type { ITopic } from "aws-cdk-lib/aws-sns";
 import type { Construct } from "constructs";
 import {
+  Annotations,
   CfnOutput,
   Duration,
   RemovalPolicy,
@@ -15,7 +16,12 @@ import {
   TreatMissingData,
 } from "aws-cdk-lib/aws-cloudwatch";
 import { SnsAction } from "aws-cdk-lib/aws-cloudwatch-actions";
-import { PolicyStatement } from "aws-cdk-lib/aws-iam";
+import {
+  OidcProviderNative,
+  PolicyStatement,
+  Role,
+  WebIdentityPrincipal,
+} from "aws-cdk-lib/aws-iam";
 import { Architecture, Runtime } from "aws-cdk-lib/aws-lambda";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
@@ -28,11 +34,21 @@ import { Queue } from "aws-cdk-lib/aws-sqs";
 const repoPath = (relativePath: string) =>
   fileURLToPath(new URL(`../../../${relativePath}`, import.meta.url));
 
+export interface VercelProject {
+  /** From the dashboard URL: vercel.com/<teamSlug>/<projectName>. */
+  readonly teamSlug: string;
+  readonly projectName: string;
+  /** Set when the account already has an IAM OIDC provider for this team. */
+  readonly oidcProviderArn?: string;
+}
+
 export interface PipelineStackProps extends StackProps {
   /** Whether the daily schedule fires. The Lambdas can be invoked by hand either way. */
   readonly scheduleEnabled: boolean;
   /** A Bedrock cross-region inference profile ID, such as `us.anthropic...`. */
   readonly bedrockModelId: string;
+  /** Lets this Vercel project queue categorization jobs. Skipped when unset. */
+  readonly vercel?: VercelProject;
 }
 
 /** Scheduled SimpleFIN sync and Bedrock categorization pipeline. */
@@ -102,6 +118,17 @@ export class PipelineStack extends Stack {
       }),
     );
 
+    if (props.vercel) {
+      const vercelRole = this.createVercelRole(props.vercel);
+      categorizeQueue.grantSendMessages(vercelRole);
+      new CfnOutput(this, "VercelRoleArn", { value: vercelRole.roleArn });
+    } else {
+      Annotations.of(this).addWarningV2(
+        "finsight:vercelRole",
+        "Set vercelTeamSlug and vercelProjectName in cdk.json so the website can queue categorization jobs.",
+      );
+    }
+
     new Schedule(this, "DailySync", {
       schedule: ScheduleExpression.cron({ minute: "0", hour: "11" }),
       target: new LambdaInvoke(scheduleSyncs, { retryAttempts: 2 }),
@@ -150,6 +177,39 @@ export class PipelineStack extends Stack {
       // AWS recommends six times the consumer's timeout.
       visibilityTimeout: Duration.seconds(consumerTimeout.toSeconds() * 6),
       deadLetterQueue: { queue: deadLetterQueue, maxReceiveCount: 3 },
+    });
+  }
+
+  /**
+   * A role the Vercel deployment assumes with its OIDC token, so the website
+   * reaches AWS without long-lived access keys.
+   */
+  private createVercelRole({
+    teamSlug,
+    projectName,
+    oidcProviderArn,
+  }: VercelProject) {
+    const issuer = `oidc.vercel.com/${teamSlug}`;
+    const audience = `https://vercel.com/${teamSlug}`;
+    // An account allows one provider per issuer, so reuse an existing one.
+    const provider = oidcProviderArn
+      ? OidcProviderNative.fromOidcProviderArn(
+          this,
+          "VercelOidc",
+          oidcProviderArn,
+        )
+      : new OidcProviderNative(this, "VercelOidc", {
+          url: `https://${issuer}`,
+          clientIds: [audience],
+        });
+
+    return new Role(this, "VercelRole", {
+      assumedBy: new WebIdentityPrincipal(provider.oidcProviderArn, {
+        StringEquals: { [`${issuer}:aud`]: audience },
+        StringLike: {
+          [`${issuer}:sub`]: `owner:${teamSlug}:project:${projectName}:environment:*`,
+        },
+      }),
     });
   }
 

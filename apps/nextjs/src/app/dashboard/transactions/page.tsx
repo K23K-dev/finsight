@@ -2,7 +2,7 @@
 
 import { useDeferredValue, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { BrainCircuit, Eye, EyeOff, RefreshCcw, Search } from "lucide-react";
+import { Eye, EyeOff, RefreshCcw, Search } from "lucide-react";
 
 import { cn } from "@finsight/ui";
 import { Button } from "@finsight/ui/button";
@@ -45,13 +45,8 @@ export default function TransactionsPage() {
   const transactions =
     transactionsQuery.data?.pages.flatMap((page) => page.items) ?? [];
 
-  const {
-    categorizeMutation,
-    handleCategoryChange,
-    handleCategorize,
-    handleDescriptionChange,
-    handleToggleHidden,
-  } = useTransactionMutations();
+  const { handleCategoryChange, handleDescriptionChange, handleToggleHidden } =
+    useTransactionMutations();
 
   const {
     pendingTransactions,
@@ -67,20 +62,6 @@ export default function TransactionsPage() {
   return (
     <div className="flex h-full flex-col">
       <PageHeader title="Transactions">
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8"
-          onClick={handleCategorize}
-          disabled={
-            categorizeMutation.isPending || (transactionStats?.total ?? 0) === 0
-          }
-        >
-          <BrainCircuit className="mr-2 h-4 w-4" aria-hidden="true" />
-          {categorizeMutation.isPending
-            ? "Categorizing"
-            : "Categorize transactions"}
-        </Button>
         <Button
           variant="outline"
           size="sm"

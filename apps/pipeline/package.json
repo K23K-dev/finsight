@@ -28,7 +28,6 @@
     "@types/aws-lambda": "^8.10.163",
     "@types/node": "catalog:",
     "aws-cdk": "^2.1143.0",
-    "esbuild": "^0.28.2",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "tsx": "^4.23.15",
